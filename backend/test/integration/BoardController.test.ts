@@ -290,4 +290,63 @@ describe('PUT /board/:id/change-parent', () => {
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('A board cannot be its own parent');
   });
+  describe('max board depth when moving', () => {
+    let rootId: number,
+      childId: number,
+      grandchildId: number,
+      newParentId: number;
+
+    beforeEach(async () => {
+      const repo = AppDataSource.getRepository(Board);
+      await repo.clear();
+
+      // Create a root board
+      const root = repo.create({ name: 'Root' });
+      await repo.save(root);
+      rootId = root.id;
+
+      // Create a child board
+      const child = repo.create({ name: 'Child', parent: root });
+      await repo.save(child);
+      childId = child.id;
+
+      // Create a grandchild board
+      const grandchild = repo.create({ name: 'Grandchild', parent: child });
+      await repo.save(grandchild);
+      grandchildId = grandchild.id;
+
+      // Create a new parent board (at root level)
+      const newParent = repo.create({ name: 'New Parent' });
+      await repo.save(newParent);
+      newParentId = newParent.id;
+    });
+
+    it('should allow moving a subtree if it does not exceed max depth', async () => {
+      // Move 'child' (with its grandchild) under 'New Parent'
+      // If MAX_BOARD_DEPTH is 3, this is allowed: New Parent -> Child -> Grandchild
+      const res = await request(app)
+        .put(`/board/${childId}/change-parent`)
+        .send({ newParentId });
+      expect(res.status).toBe(200);
+      expect(res.body.parent.id).toBe(newParentId);
+    });
+
+    it('should not allow moving a subtree if it would exceed max depth', async () => {
+      // Add a great-grandchild to make the subtree depth 3
+      const repo = AppDataSource.getRepository(Board);
+      const greatGrandchild = repo.create({
+        name: 'Great Grandchild',
+        parent: { id: grandchildId } as Board,
+      });
+      await repo.save(greatGrandchild);
+
+      // Now, moving 'child' (with grandchild and great-grandchild) under 'New Parent'
+      // would make the depth: New Parent -> Child -> Grandchild -> Great Grandchild (depth 4)
+      const res = await request(app)
+        .put(`/board/${childId}/change-parent`)
+        .send({ newParentId });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/max board depth/i);
+    });
+  });
 });

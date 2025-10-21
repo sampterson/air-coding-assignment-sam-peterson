@@ -68,14 +68,14 @@ export async function changeParentBoard(req: Request, res: Response) {
 
   try {
     const updatedBoard = await changeBoardParentService(boardId, newParentId);
-    if (!updatedBoard) {
-      return res.status(404).json({ error: 'Board not found' });
-    }
     return res.json(updatedBoard);
   } catch (err: any) {
-    if (
+    if (err.message === 'Board not found') {
+      return res.status(404).json({ error: 'Board not found' });
+    } else if (
       err.message === 'New parent board not found' ||
-      err.message === 'A board cannot be its own parent'
+      err.message === 'A board cannot be its own parent' ||
+      err.message === 'Max board depth exceeded'
     ) {
       return res.status(400).json({ error: err.message });
     }

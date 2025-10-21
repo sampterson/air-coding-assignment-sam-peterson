@@ -69,3 +69,11 @@ export async function getDepthFromRoot(board: Board): Promise<number> {
 
   return depth;
 }
+
+export async function getMaxSubtreeDepth(board: Board): Promise<number> {
+  const repo = AppDataSource.getRepository(Board);
+  const children = await repo.find({ where: { parent: { id: board.id } } });
+  if (!children.length) return 1;
+  const childDepths = await Promise.all(children.map(child => getMaxSubtreeDepth(child)));
+  return 1 + Math.max(...childDepths);
+}

@@ -1,5 +1,5 @@
 import { Board } from "../entity/Board";
-import { changeBoardParentRepo, createBoardRepo, deleteBoardAndChildrenRepo, getBoardByIdRepo as getBoardByIdRepo, getDepthFromRoot } from "../repository/BoardRepository";
+import { changeBoardParentRepo, createBoardRepo, deleteBoardAndChildrenRepo, getBoardByIdRepo as getBoardByIdRepo, getDepthFromRoot, getMaxSubtreeDepth } from "../repository/BoardRepository";
 
 // Default to max depth of 10
 const MAX_BOARD_DEPTH = Number(process.env.MAX_BOARD_DEPTH) || 10;
@@ -33,8 +33,25 @@ export async function deleteBoardService(id: number): Promise<void> {
 }
 
 export async function changeBoardParentService(boardId: number, newParentId: number): Promise<Board | null> {
-    if (boardId === newParentId) {
+  if (boardId === newParentId) {
     throw new Error("A board cannot be its own parent");
   }
+
+  const board = await getBoardByIdRepo(boardId);
+  if (!board) throw new Error("Board not found");
+
+  let newParent: Board | null = null;
+  let newParentDepth = 0;
+  if (newParentId) {
+    newParent = await getBoardByIdRepo(newParentId);
+    if (!newParent) throw new Error("New parent board not found");
+    newParentDepth = await getDepthFromRoot(newParent);
+  }
+
+  const subtreeDepth = await getMaxSubtreeDepth(board);
+  if (newParentDepth + subtreeDepth > MAX_BOARD_DEPTH) {
+    throw new Error("Max board depth exceeded");
+  }
+
   return await changeBoardParentRepo(boardId, newParentId);
 }

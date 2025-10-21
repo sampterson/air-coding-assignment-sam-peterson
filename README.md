@@ -1,3 +1,44 @@
+# Air Coding Submission
+
+## Summary
+
+I focused on the backend API first, building functionality to support the board/folder operations. I chose an adjacency list as the primary datastructure to represent the boards. With this, each board is a node in a tree that can have many children and a single parent. This made creating a new board and moving a board to a new parent simple, because all that needed to be done is updating a parent ID value. Deletes are handled in the API by a recursive function at the database level, given a boardId, the delete method is called on all child boards until there are no more child boards.
+
+I chose a controller/service/repository structure to organize the different needs. In the service layer, there are additional checks to validate create and move operations by recursively checking depths before the create or move parent operation is ran.
+
+I focused my integration testing on my controller layer, since that is the contract enforced for the UI. Using SQlite as a db simplified development for this assignment and also allows for simple in-memory persistence when running tests, which was very helpful.
+
+I focused on the UI second and built some of the features requested. There is an overall shape to the page and the ability to create default named folders and delete them. I may take additional time to finish the requirements on the front end to enable traversing the folder structures, creating child boards, and moving a board to a new parent.
+
+## Running
+
+I made sure to continue to leverage the 'docker-compose up' functionality in the starter. That should be the only step required to run my solution.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ORIGINAL README BELOW
+
 # Express Next.js WebSocket Demo with TypeScript
 
 This is a full-stack TypeScript application demonstrating the integration of Express.js backend with Next.js frontend, featuring REST API and WebSocket communication.

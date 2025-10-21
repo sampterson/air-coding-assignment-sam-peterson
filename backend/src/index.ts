@@ -2,8 +2,8 @@ import express, { Request, Response } from "express";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import cors from "cors";
-import { AppDataSource } from "./data-source"; // <-- Add this import
-import { getBoard } from "./controller/BoardController";
+import { AppDataSource } from "./data-source";
+import { createBoard, getBoard } from "./controller/BoardController";
 
 const app = express();
 const server = http.createServer(app);
@@ -16,6 +16,7 @@ const io = new SocketIOServer(server, {
 });
 
 app.use(
+  express.json(),
   cors({
     origin: ["http://localhost:3000", "http://frontend:3000"],
     credentials: true,
@@ -32,6 +33,7 @@ app.get("/api/hello", (_req: Request, res: Response<HelloResponse>) => {
 
 /* BOARD Endpoints */
 app.get("/board/:id", getBoard);
+app.post("/board", createBoard);
 
 interface NotificationMessage {
   message: string;

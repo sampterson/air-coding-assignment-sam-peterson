@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import cors from "cors";
+import { AppDataSource } from "./data-source"; // <-- Add this import
+import { getBoard } from "./controller/BoardController";
 
 const app = express();
 const server = http.createServer(app);
@@ -28,6 +30,9 @@ app.get("/api/hello", (_req: Request, res: Response<HelloResponse>) => {
   res.json({ message: "Hello from Express Backend!" });
 });
 
+/* BOARD Endpoints */
+app.get("/board/:id", getBoard);
+
 interface NotificationMessage {
   message: string;
 }
@@ -49,6 +54,15 @@ setInterval(() => {
 }, 1000);
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+// Init Sqlite db
+AppDataSource.initialize()
+  .then(() => {
+    server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Error during Data Source initialization:", error);
+    process.exit(1);
+  });

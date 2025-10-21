@@ -3,14 +3,14 @@ import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import cors from "cors";
 import { AppDataSource } from "./data-source";
-import { createBoard, getBoard } from "./controller/BoardController";
+import { createBoard, deleteBoard, getBoard } from "./controller/BoardController";
 
 const app = express();
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
     origin: ["http://localhost:3000", "http://frontend:3000"],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "DELETE"],
     credentials: true,
   },
 });
@@ -34,6 +34,7 @@ app.get("/api/hello", (_req: Request, res: Response<HelloResponse>) => {
 /* BOARD Endpoints */
 app.get("/board/:id", getBoard);
 app.post("/board", createBoard);
+app.delete("/board/:id", deleteBoard);
 
 interface NotificationMessage {
   message: string;

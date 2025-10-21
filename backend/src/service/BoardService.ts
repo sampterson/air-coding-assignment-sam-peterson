@@ -1,5 +1,5 @@
 import { Board } from "../entity/Board";
-import { createBoardRepo, getBoardById as getBoardByIdRepo } from "../repository/BoardRepository";
+import { createBoardRepo, deleteBoardAndChildren, getBoardById as getBoardByIdRepo } from "../repository/BoardRepository";
 
 export async function getBoardById(id: number): Promise<Board | null> {
   return await getBoardByIdRepo(id);
@@ -18,4 +18,8 @@ export async function createBoardService(
     }
   }
   return await createBoardRepo(name, description, parent!);
+}
+
+export async function deleteBoardService(id: number): Promise<void> {
+  await deleteBoardAndChildren(id);
 }

@@ -3,12 +3,13 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { AppDataSource } from '../../src/data-source';
 import { Board } from '../../src/entity/Board';
-import { getBoard, createBoard } from '../../src/controller/BoardController';
+import { getBoard, createBoard, deleteBoard } from '../../src/controller/BoardController';
 
 const app = express();
 app.use(bodyParser.json());
 app.get('/board/:id', getBoard);
 app.post('/board', createBoard);
+app.delete('/board/:id', deleteBoard);
 
 beforeAll(async () => {
   await AppDataSource.initialize();
@@ -88,5 +89,59 @@ describe('POST /board', () => {
       .send({ name: 'Orphan Board', parentId: 99999 });
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Parent board not found');
+  });
+});
+
+describe('DELETE /board/:id', () => {
+  let rootId: number, childId: number, grandchildId: number;
+
+  beforeEach(async () => {
+    // Create a root board
+    const repo = AppDataSource.getRepository(Board);
+    const root = repo.create({ name: 'Root', description: 'Root board' });
+    await repo.save(root);
+    rootId = root.id;
+
+    // Create a child board
+    const child = repo.create({ name: 'Child', description: 'Child board', parent: root });
+    await repo.save(child);
+    childId = child.id;
+
+    // Create a grandchild board
+    const grandchild = repo.create({ name: 'Grandchild', description: 'Grandchild board', parent: child });
+    await repo.save(grandchild);
+    grandchildId = grandchild.id;
+  });
+
+  afterEach(async () => {
+    // Clean up all boards
+    const repo = AppDataSource.getRepository(Board);
+    await repo.clear();
+  });
+
+  it('should delete a board and all its children recursively', async () => {
+    // Delete the root board
+    const res = await request(app).delete(`/board/${rootId}`);
+    expect(res.status).toBe(204);
+
+    // All boards should be deleted
+    const repo = AppDataSource.getRepository(Board);
+    const root = await repo.findOneBy({ id: rootId });
+    const child = await repo.findOneBy({ id: childId });
+    const grandchild = await repo.findOneBy({ id: grandchildId });
+    expect(root).toBeNull();
+    expect(child).toBeNull();
+    expect(grandchild).toBeNull();
+  });
+
+  it('should return 400 for invalid id', async () => {
+    const res = await request(app).delete('/board/abc');
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Invalid board id');
+  });
+
+  it('should return 204 for non-existent board', async () => {
+    const res = await request(app).delete('/board/99999');
+    expect(res.status).toBe(204);
   });
 });

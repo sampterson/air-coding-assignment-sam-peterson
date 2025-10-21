@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { getBoardById } from "../repository/BoardRepository";
 import { AppDataSource } from "../data-source";
 import { Board } from "../entity/Board";
-import { createBoardService } from "../service/BoardService";
+import { createBoardService, deleteBoardService } from "../service/BoardService";
 
 export async function getBoard(req: Request, res: Response) {
   const id = Number(req.params.id);
@@ -19,7 +19,6 @@ export async function getBoard(req: Request, res: Response) {
 }
 
 export async function createBoard(req: Request, res: Response) {
-  console.log("In createBoard");
   console.log(req.body)
   const { name, description, parentId } = req.body;
 
@@ -34,6 +33,20 @@ export async function createBoard(req: Request, res: Response) {
     if (err.message === "Parent board not found") {
       return res.status(400).json({ error: err.message });
     }
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function deleteBoard(req: Request, res: Response) {
+  const id = Number(req.params.id);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "Invalid board id" });
+  }
+
+  try {
+    await deleteBoardService(id);
+    return res.status(204).send();
+  } catch (err) {
     return res.status(500).json({ error: "Internal server error" });
   }
 }

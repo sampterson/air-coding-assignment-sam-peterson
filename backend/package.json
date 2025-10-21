@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "cross-env MAX_BOARD_DEPTH=10 node dist/index.js",
     "build": "tsc",
-    "dev": "ts-node-dev --respawn src/index.ts",
-    "test": "NODE_ENV=test && jest"
+    "dev": "cross-env MAX_BOARD_DEPTH=5 ts-node-dev --respawn src/index.ts",
+    "test": "cross-env NODE_ENV=test MAX_BOARD_DEPTH=3 jest"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -22,6 +22,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^20.11.17",
     "@types/supertest": "^6.0.3",
+    "cross-env": "^10.1.0",
     "jest": "^30.2.0",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.5",

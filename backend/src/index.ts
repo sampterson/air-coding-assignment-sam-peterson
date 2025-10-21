@@ -3,7 +3,7 @@ import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import cors from "cors";
 import { AppDataSource } from "./data-source";
-import { changeParentBoard, createBoard, deleteBoard, getBoard } from "./controller/BoardController";
+import { changeParentBoard, createBoard, deleteBoard, getBoard, getBoards } from "./controller/BoardController";
 
 const app = express();
 const server = http.createServer(app);
@@ -32,6 +32,7 @@ app.get("/api/hello", (_req: Request, res: Response<HelloResponse>) => {
 });
 
 /* BOARD Endpoints */
+app.get("/board", getBoards);
 app.get("/board/:id", getBoard);
 app.post("/board", createBoard);
 app.delete("/board/:id", deleteBoard);

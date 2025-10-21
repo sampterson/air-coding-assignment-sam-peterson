@@ -1,6 +1,12 @@
 
+import { IsNull } from "typeorm";
 import { AppDataSource } from "../data-source";
 import { Board } from "../entity/Board";
+
+export async function getRootBoardsRepo(): Promise<Board[]> {
+  const boardRepository = AppDataSource.getRepository(Board);
+  return await boardRepository.find({ where: { parent: IsNull()} });
+}
 
 export async function getBoardByIdRepo(id: number): Promise<Board | null> {
   const boardRepository = AppDataSource.getRepository(Board);

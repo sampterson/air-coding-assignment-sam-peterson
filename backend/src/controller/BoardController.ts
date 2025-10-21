@@ -6,7 +6,17 @@ import {
   changeBoardParentService,
   createBoardService,
   deleteBoardService,
+  getRootBoardsService,
 } from '../service/BoardService';
+
+export async function getBoards(req: Request, res: Response) {
+  try {
+    const rootBoards = await getRootBoardsService();
+    return res.json(rootBoards);
+  } catch (err) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
 
 export async function getBoard(req: Request, res: Response) {
   const id = Number(req.params.id);

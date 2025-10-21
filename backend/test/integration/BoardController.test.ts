@@ -8,10 +8,12 @@ import {
   createBoard,
   deleteBoard,
   changeParentBoard,
+  getBoards,
 } from '../../src/controller/BoardController';
 
 const app = express();
 app.use(bodyParser.json());
+app.get('/board', getBoards);
 app.get('/board/:id', getBoard);
 app.post('/board', createBoard);
 app.delete('/board/:id', deleteBoard);
@@ -348,5 +350,58 @@ describe('PUT /board/:id/change-parent', () => {
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/max board depth/i);
     });
+  });
+});
+
+describe('GET /board', () => {
+  beforeEach(async () => {
+    // Clean up all boards before each test
+    const repo = AppDataSource.getRepository(Board);
+    await repo.clear();
+  });
+
+  it('should return an empty array if there are no boards', async () => {
+    const res = await request(app).get('/board');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(0);
+  });
+
+  it('should return all root boards (parent is null)', async () => {
+    const repo = AppDataSource.getRepository(Board);
+
+    // Create two root boards
+    const root1 = repo.create({ name: 'Root 1' });
+    const root2 = repo.create({ name: 'Root 2' });
+    await repo.save([root1, root2]);
+
+    // Create a child board (should not be returned)
+    const child = repo.create({ name: 'Child', parent: root1 });
+    await repo.save(child);
+
+    const res = await request(app).get('/board');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(2);
+
+    const names = res.body.map((b: any) => b.name);
+    expect(names).toContain('Root 1');
+    expect(names).toContain('Root 2');
+    expect(names).not.toContain('Child');
+  });
+
+  it('should not return boards that have a parent', async () => {
+    const repo = AppDataSource.getRepository(Board);
+
+    // Create a root and a child
+    const root = repo.create({ name: 'Root' });
+    await repo.save(root);
+    const child = repo.create({ name: 'Child', parent: root });
+    await repo.save(child);
+
+    const res = await request(app).get('/board');
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBe(1);
+    expect(res.body[0].name).toBe('Root');
   });
 });

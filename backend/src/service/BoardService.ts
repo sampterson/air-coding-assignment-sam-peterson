@@ -1,8 +1,12 @@
 import { Board } from "../entity/Board";
-import { changeBoardParentRepo, createBoardRepo, deleteBoardAndChildrenRepo, getBoardByIdRepo as getBoardByIdRepo, getDepthFromRoot, getMaxSubtreeDepth } from "../repository/BoardRepository";
+import { changeBoardParentRepo, createBoardRepo, deleteBoardAndChildrenRepo, getBoardByIdRepo as getBoardByIdRepo, getDepthFromRoot, getMaxSubtreeDepth, getRootBoardsRepo } from "../repository/BoardRepository";
 
 // Default to max depth of 10
 const MAX_BOARD_DEPTH = Number(process.env.MAX_BOARD_DEPTH) || 10;
+
+export async function getRootBoardsService(): Promise<Board[]> {
+  return await getRootBoardsRepo();
+}
 
 export async function getBoardById(id: number): Promise<Board | null> {
   return await getBoardByIdRepo(id);

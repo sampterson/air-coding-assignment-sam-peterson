@@ -8,7 +8,7 @@ export async function getRootBoardsService(): Promise<Board[]> {
   return await getRootBoardsRepo();
 }
 
-export async function getBoardById(id: number): Promise<Board | null> {
+export async function getBoardByIdService(id: number): Promise<Board | null> {
   return await getBoardByIdRepo(id);
 }
 

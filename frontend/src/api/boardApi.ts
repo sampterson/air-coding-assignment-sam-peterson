@@ -3,6 +3,7 @@ export type Board = {
   name: string;
   description?: string;
   parentId?: number | null;
+  children?: Board[]
 };
 
 export async function fetchBoards(): Promise<Board[]> {
@@ -11,9 +12,9 @@ export async function fetchBoards(): Promise<Board[]> {
   return await res.json();
 }
 
-export async function fetchBoardById(id: number): Promise<Board[]> {
-  const res = await fetch(`http://localhost:3001/board${id}`);
-  if (!res.ok) return [];
+export async function fetchBoardById(id: number): Promise<Board | undefined> {
+  const res = await fetch(`http://localhost:3001/board/${id}`);
+  if (!res.ok) return undefined;
   return await res.json();
 }
 

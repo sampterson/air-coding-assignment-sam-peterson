@@ -3,12 +3,11 @@ import {
   createBoard as apiCreateBoard,
   fetchBoards,
   deleteBoard as apiDeleteBoard,
-  type Board as ApiBoard,
+  Board,
+  fetchBoardById,
 } from '../api/boardApi';
-import FolderTreeView from './FolderTreeView';
 import NewFolderModal from './NewFolderModal';
-
-type Board = ApiBoard & { children?: Board[] };
+import FolderNode from './FolderNode';
 
 function FolderTree() {
   const [boards, setBoards] = useState<Board[]>([]);
@@ -19,21 +18,23 @@ function FolderTree() {
     fetchBoards().then(setBoards);
   }, []);
 
-  const buildTree = (items: Board[], parentId: number | null = null): Board[] =>
-    items
-      .filter((item) => (item.parentId ?? null) === parentId)
-      .map((item) => ({
-        ...item,
-        children: buildTree(items, item.id),
-      }));
-
-  const tree = buildTree(boards);
+  const rootNodes = boards.filter((b) => !b.parentId);
 
   const handleCreateBoard = async (name: string, description: string) => {
     const newBoard = await apiCreateBoard(name, selectedId, description);
     if (!newBoard) return;
-    setBoards((prev) => [...prev, { ...newBoard, children: [] }]);
-    setSelectedId(newBoard.id);
+
+    if (selectedId) {
+      const updatedParent = await fetchBoardById(selectedId);
+      setBoards((prev) => [
+        ...prev.filter((b) => b.id !== selectedId),
+        ...(updatedParent ? [updatedParent] : []),
+      ]);
+      setSelectedId(selectedId);
+    } else {
+      setBoards((prev) => [...prev, { ...newBoard, children: [] }]);
+      setSelectedId(newBoard.id);
+    }
     setShowNewFolderModal(false);
   };
 
@@ -51,11 +52,18 @@ function FolderTree() {
       <aside className="w-80 border-r border-gray-200 bg-white p-4 flex flex-col flex-shrink-0 max-h-screen">
         <h3 className="text-lg font-semibold mb-4">Folders</h3>
         <div className="flex-1 overflow-y-auto">
-          <FolderTreeView
-            nodes={tree}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-          />
+          <ul className="pl-0">
+            {rootNodes.map((node) => (
+              <li key={node.id}>
+                <FolderNode
+                  node={node}
+                  selectedId={selectedId}
+                  onSelect={setSelectedId}
+                  expandId={selectedId}
+                />
+              </li>
+            ))}
+          </ul>
         </div>
         <div className="mt-4 flex flex-col gap-2 pb-8">
           <button
@@ -81,12 +89,12 @@ function FolderTree() {
             Move
           </button>
         </div>
+        <NewFolderModal
+          open={showNewFolderModal}
+          onClose={() => setShowNewFolderModal(false)}
+          onCreate={handleCreateBoard}
+        />
       </aside>
-      <NewFolderModal
-        open={showNewFolderModal}
-        onClose={() => setShowNewFolderModal(false)}
-        onCreate={handleCreateBoard}
-      />
       <main className="flex-1 p-8">
         {selectedId ? (
           <div className="text-black">Selected Folder ID: {selectedId}</div>

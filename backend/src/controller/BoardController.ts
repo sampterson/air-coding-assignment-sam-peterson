@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { getBoardByIdRepo } from '../repository/BoardRepository';
 import {
   changeBoardParentService,
   createBoardService,
   deleteBoardService,
+  getBoardByIdService,
   getRootBoardsService,
 } from '../service/BoardService';
 
@@ -22,7 +22,7 @@ export async function getBoard(req: Request, res: Response) {
     return res.status(400).json({ error: 'Invalid board id' });
   }
 
-  const board = await getBoardByIdRepo(id);
+  const board = await getBoardByIdService(id);
   if (!board) {
     return res.status(404).json({ error: 'Board not found' });
   }

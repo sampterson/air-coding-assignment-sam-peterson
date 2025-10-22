@@ -8,7 +8,9 @@ I chose a controller/service/repository structure to organize the different need
 
 I focused my integration testing on my controller layer, since that is the contract enforced for the UI. Using SQlite as a db simplified development for this assignment and also allows for simple in-memory persistence when running tests, which was very helpful.
 
-I focused on the UI second and built some of the features requested. There is an overall shape to the page and the ability to create default named folders and delete them. I may take additional time to finish the requirements on the front end to enable traversing the folder structures, creating child boards, and moving a board to a new parent.
+I focused on the UI second and built some of the features requested. There is an overall shape to the page and the ability to create named folders, delete, and move them. 
+
+I took some additional time, however there are improvements to be made yet. One thing I would do next is introduce state management at a global level. I'm recursively rendering BoardNodes which works fine, but what is missing is the entire tree in memory. The BoardTree maintains some nodes, and each BoardNode maintains its children, but no where is the entire tree in memory. Tracking this in redux or react-query would make moving parents much easier as all nodes could easily be retrieved. Similarily, overall rendering would be easier since each create, delete, or move operation would update the overall tree state, which can then be re-rendered.
 
 ## Running
 

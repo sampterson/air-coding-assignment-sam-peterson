@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   createBoard as apiCreateBoard,
   fetchBoards,
   deleteBoard as apiDeleteBoard,
   type Board as ApiBoard,
-} from "../api/boardApi";
-import FolderTreeView from "./FolderTreeView";
+} from '../api/boardApi';
+import FolderTreeView from './FolderTreeView';
+import NewFolderModal from './NewFolderModal';
 
 type Board = ApiBoard & { children?: Board[] };
 
-function FolderTreeApp() {
+function FolderTree() {
   const [boards, setBoards] = useState<Board[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [showNewFolderModal, setShowNewFolderModal] = useState(false);
 
   useEffect(() => {
     fetchBoards().then(setBoards);
@@ -27,19 +29,18 @@ function FolderTreeApp() {
 
   const tree = buildTree(boards);
 
-  const handleCreateBoard = async () => {
-    const newBoard = await apiCreateBoard("New Folder", selectedId);
+  const handleCreateBoard = async (name: string, description: string) => {
+    const newBoard = await apiCreateBoard(name, selectedId, description);
     if (!newBoard) return;
-    // Optimistic add; alternatively refetch
     setBoards((prev) => [...prev, { ...newBoard, children: [] }]);
     setSelectedId(newBoard.id);
+    setShowNewFolderModal(false);
   };
 
   const handleDeleteBoard = async (id: number | null) => {
     if (id == null) return;
     const ok = await apiDeleteBoard(id);
     if (!ok) return;
-    // Backend deletes node and descendants; refresh from server
     const fresh = await fetchBoards();
     setBoards(fresh);
     setSelectedId(null);
@@ -50,12 +51,16 @@ function FolderTreeApp() {
       <aside className="w-80 border-r border-gray-200 bg-white p-4 flex flex-col flex-shrink-0 max-h-screen">
         <h3 className="text-lg font-semibold mb-4">Folders</h3>
         <div className="flex-1 overflow-y-auto">
-          <FolderTreeView nodes={tree} selectedId={selectedId} onSelect={setSelectedId} />
+          <FolderTreeView
+            nodes={tree}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+          />
         </div>
         <div className="mt-4 flex flex-col gap-2 pb-8">
           <button
             className="bg-blue-500 text-white rounded px-3 py-1 hover:bg-blue-600"
-            onClick={handleCreateBoard}
+            onClick={() => setShowNewFolderModal(true)}
           >
             New Folder
           </button>
@@ -77,6 +82,11 @@ function FolderTreeApp() {
           </button>
         </div>
       </aside>
+      <NewFolderModal
+        open={showNewFolderModal}
+        onClose={() => setShowNewFolderModal(false)}
+        onCreate={handleCreateBoard}
+      />
       <main className="flex-1 p-8">
         {selectedId ? (
           <div className="text-black">Selected Folder ID: {selectedId}</div>
@@ -88,4 +98,4 @@ function FolderTreeApp() {
   );
 }
 
-export default FolderTreeApp;
+export default FolderTree;

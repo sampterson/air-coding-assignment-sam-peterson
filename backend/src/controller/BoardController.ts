@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
 import { getBoardByIdRepo } from '../repository/BoardRepository';
-import { AppDataSource } from '../data-source';
-import { Board } from '../entity/Board';
 import {
   changeBoardParentService,
   createBoardService,

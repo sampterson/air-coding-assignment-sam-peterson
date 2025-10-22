@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { fetchBoardById, Board } from '../api/boardApi';
 
-type FolderNodeProps = {
+type BoardNodeProps = {
   node: Board;
   selectedId: number | null;
   onSelect: (id: number) => void;
   expandId?: number | null;
 };
 
-const FolderNode: React.FC<FolderNodeProps> = ({
+const BoardNode: React.FC<BoardNodeProps> = ({
   node,
   selectedId,
   onSelect,
@@ -68,10 +68,11 @@ const FolderNode: React.FC<FolderNodeProps> = ({
             <ul>
               {children.map((child) => (
                 <li key={child.id}>
-                  <FolderNode
+                  <BoardNode
                     node={child}
                     selectedId={selectedId}
                     onSelect={onSelect}
+                    expandId={expandId}
                   />
                 </li>
               ))}
@@ -85,4 +86,4 @@ const FolderNode: React.FC<FolderNodeProps> = ({
   );
 };
 
-export default FolderNode;
+export default BoardNode;

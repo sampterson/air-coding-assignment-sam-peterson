@@ -40,3 +40,12 @@ export async function deleteBoard(id: number): Promise<boolean> {
   const res = await fetch(`http://localhost:3001/board/${id}`, { method: "DELETE" });
   return res.ok;
 }
+
+export async function moveBoard(boardId: number, newParentId: number | null): Promise<boolean> {
+  const res = await fetch(`http://localhost:3001/board/${boardId}/change-parent`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newParentId }),
+  });
+  return res.ok;
+}
